@@ -328,5 +328,24 @@ GROUP BY ingredient_id, ingredient_name;
 
 -- SHOW ONLY ORDERS THAT COST MORE THAN 100KC 
 
-
+SELECT order_id, SUM(is_a_part_of.quantity * menu_item.menu_item_price) as final_sum 
+FROM rest_order rst_ord
+JOIN is_a_part_of ON rst_ord.order_id = is_a_part_of.order_id
+JOIN menu_item ON is_a_part_of.menu_item_id = menu_item.menu_item_id
+GROUP BY order_id
+HAVING SUM(is_a_part_of.quantity * menu_item.menu_item_price) > 100;
  
+-- HOW MANY ORDERS HAS OBIWAN KENOBI MADE
+
+SELECT user_id, user_name, COUNT(order_id) as num_of_orders
+FROM rest_user NATURAL JOIN makes
+WHERE rest_user.user_name = 'Obi-Wan Kenobi'
+GROUP BY user_id, user_name
+
+-- HOW MANY TABLES ARE RESERVED FOR 8 OF APRIL 2025?
+
+SELECT table_id, COUNT(DISTINCT table_id) AS num_of_reserv_table
+FROM rest_table
+JOIN table_reservation t_r ON rest_table.table_id = t_r.table_id
+WHERE TRUNC(t_r.event_time) = TO_DATE('08.04.2025', 'DD.MM.YYYY')
+GROUP BY table_id
