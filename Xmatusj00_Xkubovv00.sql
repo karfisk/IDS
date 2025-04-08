@@ -292,3 +292,41 @@ SELECT * FROM IS_A_PART_OF;
 SELECT * FROM CONSISTS_OF;
 SELECT * FROM USES;
 SELECT * FROM CONTAINS;
+
+
+-- TODO - pridat dotazy na tabulky pomocou SELECT:
+--
+-- Mozne selecty? => kolko obiednavok/reservacii vytvoril user,
+--                => kolko z obiednavok bolo vytvorenych zakaznikom a kolko zamestnancom, 
+--                => kolko menu_items obsahuje alergen/ingerdienciu, 
+--                => kolko ingrediencii obsahuju menu_item,
+--                => kolko rezervacii je vytvorenych pre salonik a kolko pre stoly, 
+--                => nieco s casom (napr kolko obiednavok bolo vytvorenych v tom a v tom case, pocet ingrediencii zobrany napriklad za mesiac,...),
+--                => kolko sa predalo z roznych menu_items a ake menu_item sa predal najviac
+--
+-- Dalej skontroluj ci tieto SELECT splnaju poziadavky !!!!
+-- A samozrejme implementuj.
+
+-- What ingriedients are used in menu item (for example 'svieckova')?
+-- This request is done using IN 
+SELECT ingredient_name
+FROM ingredient 
+WHERE ingredient_id IN 
+    (SELECT ingredient_id FROM consists_of
+     WHERE menu_item_id IN
+     (SELECT menu_item_id FROM menu_item
+     WHERE menu_item_name = 'svieckova')); 
+
+-- HOW MUCH INGREDIENTS IS IN MENU ITEM (LETS USE 'SVIECKOVA' ONCE AGAIN)?
+
+SELECT ingredient_id, ingredient_name, COUNT(*) AS num_of_ingredients
+FROM ingredient ing 
+JOIN consists_of c_f ON ing.ingredient_id = c_f.ingredient_id
+JOIN menu_item mn_it ON c_f.menu_item_id = mn_it.menu_item_id
+WHERE mn_it.menu_item_name = 'svieckova' 
+GROUP BY ingredient_id, ingredient_name;
+
+-- SHOW ONLY ORDERS THAT COST MORE THAN 100KC 
+
+
+ 
