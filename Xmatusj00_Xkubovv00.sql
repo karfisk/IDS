@@ -183,7 +183,7 @@ VALUES ('Jar Jar Binks', 'mooie_mooie_Iloveyou@atlas.cz', '0435 492 681', 'Custo
 INSERT INTO rest_user (user_name, email_adress, telephone_num, user_position, user_adress)
 VALUES ('Darth Maul', 'KENOBIIII@seznam.cz', '0989 898 989', 'Customer', NULL);
 INSERT INTO rest_user (user_name, email_adress, telephone_num, user_position, user_adress)
-VALUES ('Ahsoka Tano', 'im_no_jedi@gmail.com', '0756 755 555', 'Employee', 'Coruscant 620', 'Underground level');
+VALUES ('Ahsoka Tano', 'im_no_jedi@gmail.com', '0756 755 555', 'Employee', 'Coruscant 620, Underground level');
 INSERT INTO rest_user (user_name, email_adress, telephone_num, user_position, user_adress)
 VALUES ('Jeans Guy', 'inthebackground@gmail.com', '0666 666 666', 'Customer', NULL);
 INSERT INTO rest_user (user_name, email_adress, telephone_num, user_position, user_adress)
@@ -248,7 +248,7 @@ VALUES ('Iceberg Ice Tea', 25);
 INSERT INTO menu_item (menu_item_name, menu_item_price)
 VALUES ('Chilly Wine', 60);
 INSERT INTO menu_item (menu_item_name, menu_item_price)
-VALUES ("Angel's Coffee", 45);
+VALUES ('Angel''s Coffee', 45);
 
 -- INGREDIENT
 INSERT INTO ingredient (ingredient_exper_date, ingredient_amount, ingredient_unit, ingredient_name) 
@@ -412,40 +412,40 @@ WHERE ingredient_id IN
     (SELECT ingredient_id FROM consists_of
      WHERE menu_item_id IN
      (SELECT menu_item_id FROM menu_item
-     WHERE menu_item_name = 'svieckova')); 
+     WHERE menu_item_name = 'Svieckova')); 
 
 -- HOW MANY INGREDIENTS ARE IN A MENU ITEM (LETS USE 'SVIECKOVA' ONCE AGAIN)?
 
-SELECT ingredient_id, ingredient_name, COUNT(*) AS num_of_ingredients
+SELECT ing.ingredient_id, ing.ingredient_name, COUNT(*) AS num_of_ingredients
 FROM ingredient ing 
 JOIN consists_of c_f ON ing.ingredient_id = c_f.ingredient_id
 JOIN menu_item mn_it ON c_f.menu_item_id = mn_it.menu_item_id
-WHERE mn_it.menu_item_name = 'svieckova' 
-GROUP BY ingredient_id, ingredient_name;
+WHERE mn_it.menu_item_name = 'Svieckova' 
+GROUP BY ing.ingredient_id, ing.ingredient_name;
 
 -- SHOW ONLY ORDERS THAT COST MORE THAN 100KC 
 
-SELECT order_id, SUM(is_a_part_of.quantity * menu_item.menu_item_price) as final_sum 
+SELECT rst_ord.order_id, SUM(is_a_part_of.quantity * menu_item.menu_item_price) as final_sum 
 FROM rest_order rst_ord
 JOIN is_a_part_of ON rst_ord.order_id = is_a_part_of.order_id
 JOIN menu_item ON is_a_part_of.menu_item_id = menu_item.menu_item_id
-GROUP BY order_id
+GROUP BY rst_ord.order_id
 HAVING SUM(is_a_part_of.quantity * menu_item.menu_item_price) > 100;
  
--- HOW MANY ORDERS HAS OBI-WAN KENOBI MADE
+-- HOW MANY ORDERS HAS GENERAL GRIEVOUS MADE
 
 SELECT user_id, user_name, COUNT(order_id) as num_of_orders
 FROM rest_user NATURAL JOIN makes
-WHERE rest_user.user_name = 'Obi-Wan Kenobi'
+WHERE rest_user.user_name = 'General Grievous'
 GROUP BY user_id, user_name;
 
 -- HOW MANY TABLES ARE RESERVED FOR THE 8TH OF APRIL 2025?
 
-SELECT table_id, COUNT(DISTINCT table_id) AS num_of_reserv_table
+SELECT rest_table.table_id, COUNT(DISTINCT t_r.table_id) AS num_of_reserv_table
 FROM rest_table
 JOIN table_reservation t_r ON rest_table.table_id = t_r.table_id
 WHERE TRUNC(t_r.event_time) = TO_DATE('08.04.2025', 'DD.MM.YYYY')
-GROUP BY table_id;
+GROUP BY rest_table.table_id;
 
 
 -- Which menu items are alergen free?
