@@ -532,12 +532,16 @@ ORDER BY total_quantity_ordered DESC;*/
 CREATE OR REPLACE TRIGGER check_for_conflict_in_reservation_table
 BEFORE INSERT ON table_reservation
 FOR EACH ROW
+DECLARE
+    num_of_res NUMBER;
 
 BEGIN
-    IF EXISTS (SELECT 1 FROM table_reservation 
+    SELECT COUNT(*) INTO num_of_res
+    FROM table_reservation 
     WHERE table_id = :NEW.table_id
-    AND event_time = :NEW.event_time
-    ) THEN
+    AND event_time = :NEW.event_time;
+    
+    IF num_of_res > 0 THEN
         RAISE_APPLICATION_ERROR(-20001, 'There is a another reservation in selected time');
     END IF;
 END;
@@ -547,12 +551,16 @@ CREATE OR REPLACE TRIGGER check_for_conflict_in_reservation_saloon
 BEFORE INSERT ON saloon_reservation
 FOR EACH ROW
 
+DECLARE
+    num_of_res NUMBER;
+
 BEGIN 
-    IF EXISTS (SELECT 1 FROM saloon_reservation
+    SELECT COUNT(*) INTO num_of_res
+    FROM saloon_reservation
     WHERE saloon_id = :NEW.saloon_id
-    AND event_time = :NEW.event_time
-    ) THEN
-        RAISE_APPLICATION_ERROR(-20001, 'There is a another reservation in selected time')
+    AND event_time = :NEW.event_time;
+    IF num_of_res > 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'There is a another reservation in selected time');
     END IF;
 END;
 /
@@ -570,7 +578,7 @@ BEGIN
     WHERE ingredient_id = :NEW.ingredient_id;
 
     IF expr_date < :NEW.use_time THEN 
-        RAISE_APPLICATION_ERROR(-20002, 'Exipiration date of ingredient is exceeded')
+        RAISE_APPLICATION_ERROR(-20002, 'Exipiration date of ingredient is exceeded');
     END IF;
 END;
 /
@@ -588,7 +596,7 @@ END;
 ------------------------------ PROCEDURY -------------------------------------------------------------------------------------------
 
 --1. Procedura => odstranenie ingrediencii po zaruke
-CREATE OR REPLACE CURSOR delete_expired_ingriedients IS
+CREATE OR REPLACE PROCEDURE delete_expired_ingriedients IS
 
     CURSOR expr_ing IS
         SELECT * FROM ingredient 
@@ -655,7 +663,35 @@ FROM rest_order ro
 LEFT JOIN is_a_part_of iap ON ro.order_id = iap.order_id
 LEFT JOIN menu_item m ON iap.menu_item_id = m.menu_item_id
 GROUP BY ro.order_id
-HAVING SUM(iap.quantity * m.menu_item_price) > 200
+HAVING SUM(iap.quantity * m.menu_item_price) > 200;
 --ORDER BY ro.order_id;
 
-SELECT* FROM TABLE (DBMS_XPLAN.DISPLAY)
+SELECT * FROM TABLE (DBMS_XPLAN.DISPLAY);
+
+CREATE INDEX index_is_part_of_order ON is_a_part_of(order_id);
+
+DELETE FROM PLAN_TABLE;
+COMMIT;
+
+EXPLAIN PLAN FOR
+SELECT /*+ INDEX(iap index_is_part_of_order) */ ro.order_id, SUM(iap.quantity * m.menu_item_price) as final_sum 
+FROM rest_order ro
+LEFT JOIN is_a_part_of iap ON ro.order_id = iap.order_id
+LEFT JOIN menu_item m ON iap.menu_item_id = m.menu_item_id
+GROUP BY ro.order_id
+HAVING SUM(iap.quantity * m.menu_item_price) > 200;
+--ORDER BY ro.order_id;
+
+SELECT * FROM TABLE (DBMS_XPLAN.DISPLAY);
+
+
+-- udelenie prav 
+
+//GRANT ALL ON igredient TO Xkubovv00;
+
+BEGIN
+    FOR i IN (SELECT table_name FROM user_tables) LOOP
+        EXECUTE IMMEDIATE 'GRANT SELECT ON ' || i.table_name || ' TO Xkubovv00';
+    END LOOP;
+END;
+/
