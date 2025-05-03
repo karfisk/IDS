@@ -461,7 +461,7 @@ SELECT * FROM CONTAINS;
 
 -- Which ingriedients are used in menu item 'Ration Pack'?
 -- (IN predicate with a subquery)
-SELECT ingredient_name
+/*SELECT ingredient_name
 FROM ingredient 
 WHERE ingredient_id IN 
     (SELECT ingredient_id FROM consists_of
@@ -520,4 +520,142 @@ SELECT mi.menu_item_id, mi.menu_item_name, SUM(iap.quantity) AS total_quantity_o
 FROM is_a_part_of iap
 JOIN menu_item mi ON iap.menu_item_id = mi.menu_item_id
 GROUP BY mi.menu_item_id, mi.menu_item_name
-ORDER BY total_quantity_ordered DESC;
+ORDER BY total_quantity_ordered DESC;*/
+
+
+
+------------------------------------------- Advance Quaries ---------------------------------------------------
+
+----------------------------------------------- Triggers ------------------------------------------------------
+
+--1. Trigger => kontrola rezervacie (nesmie vzniknit na jeden cas viac ako jedna rezervacia na miesto alebo salonik)
+CREATE OR REPLACE TRIGGER check_for_conflict_in_reservation_table
+BEFORE INSERT ON table_reservation
+FOR EACH ROW
+
+BEGIN
+    IF EXISTS (SELECT 1 FROM table_reservation 
+    WHERE table_id = :NEW.table_id
+    AND event_time = :NEW.event_time
+    ) THEN
+        RAISE_APPLICATION_ERROR(-20001, 'There is a another reservation in selected time');
+    END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER check_for_conflict_in_reservation_saloon
+BEFORE INSERT ON saloon_reservation
+FOR EACH ROW
+
+BEGIN 
+    IF EXISTS (SELECT 1 FROM saloon_reservation
+    WHERE saloon_id = :NEW.saloon_id
+    AND event_time = :NEW.event_time
+    ) THEN
+        RAISE_APPLICATION_ERROR(-20001, 'There is a another reservation in selected time')
+    END IF;
+END;
+/
+
+--2. Trigger => kontrola casu spotreby (nemies pouzit polozky ktore su po case spotreby)
+CREATE OR REPLACE TRIGGER check_for_expiration_date
+BEFORE INSERT ON uses
+FOR EACH ROW
+
+DECLARE
+expr_date TIMESTAMP;
+
+BEGIN 
+    SELECT ingredient_exper_date INTO expr_date FROM ingredient
+    WHERE ingredient_id = :NEW.ingredient_id;
+
+    IF expr_date < :NEW.use_time THEN 
+        RAISE_APPLICATION_ERROR(-20002, 'Exipiration date of ingredient is exceeded')
+    END IF;
+END;
+/
+
+--3. Trigger => ak zamestnanec prida do tabulky uses ingredienciu sputi sa procedura update_ingredient amount
+CREATE OR REPLACE TRIGGER trigger_update_after_insertion_uses
+AFTER INSERT ON uses
+FOR EACH ROW
+
+BEGIN 
+    update_ingredient_amount(:NEW.ingredient_id, :NEW.ingredient_amount);
+END;
+/
+
+------------------------------ PROCEDURY -------------------------------------------------------------------------------------------
+
+--1. Procedura => odstranenie ingrediencii po zaruke
+CREATE OR REPLACE CURSOR delete_expired_ingriedients IS
+
+    CURSOR expr_ing IS
+        SELECT * FROM ingredient 
+        WHERE ingredient_exper_date < SYSDATE;
+
+    curr_ingredient ingredient%ROWTYPE;
+BEGIN 
+    OPEN expr_ing;
+    LOOP 
+        FETCH expr_ing INTO curr_ingredient;
+        EXIT WHEN expr_ing%NOTFOUND; 
+
+        BEGIN 
+            DELETE FROM ingredient
+            WHERE ingredient_id = curr_ingredient.ingredient_id;
+        EXCEPTION
+            WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('nepodarilo sa mi zmazat ingredienciu s ID: ' || curr_ingredient.ingredient_id); -- zmenit hlasenu chybu
+        END;
+    END LOOP;
+    CLOSE expr_ing;
+
+DBMS_OUTPUT.PUT_LINE('Podarilo sa vymazat ingredienciu'); -- aj tu 
+
+EXCEPTION
+    WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('Chyba pri executovani proceduri delete_expired_ingridients');
+END;
+/
+
+--2. procedura => ak sa pouzije nejaka ingrediencia uloz nove aktualne mnozstvo 
+CREATE OR REPLACE PROCEDURE update_ingredient_amount(
+    ing_id IN ingredient.ingredient_id%TYPE,
+    ing_used_amount IN ingredient.ingredient_amount%TYPE
+) IS
+    current_amount ingredient.ingredient_amount%TYPE;
+BEGIN
+    SELECT ingredient_amount INTO current_amount FROM ingredient
+    WHERE ingredient_id = ing_id;
+
+    IF ing_used_amount > current_amount THEN
+        RAISE_APPLICATION_ERROR(-20003, 'na sklade nie je taketo mnozstvo suroviny');
+    END IF;
+    
+    UPDATE ingredient
+    SET ingredient_amount = current_amount - ing_used_amount
+    WHERE ingredient_id = ing_id;
+
+    DBMS_OUTPUT.PUT_LINE('update bol uspesny');
+
+EXCEPTION
+    WHEN OTHERS THEN 
+    DBMS_OUTPUT.PUT_LINE('update bol neuspesny');
+
+END;
+/
+
+------------------------------------- Optimalizacia cez index ---------------------------------------------
+
+-- Ako priklad vyuzijeme select z minulej casti projektu
+EXPLAIN PLAN FOR
+SELECT ro.order_id, SUM(iap.quantity * m.menu_item_price) as final_sum 
+FROM rest_order ro
+LEFT JOIN is_a_part_of iap ON ro.order_id = iap.order_id
+LEFT JOIN menu_item m ON iap.menu_item_id = m.menu_item_id
+GROUP BY ro.order_id
+HAVING SUM(iap.quantity * m.menu_item_price) > 200
+--ORDER BY ro.order_id;
+
+SELECT* FROM TABLE (DBMS_XPLAN.DISPLAY)
