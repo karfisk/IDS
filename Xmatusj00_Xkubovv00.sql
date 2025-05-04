@@ -719,7 +719,6 @@ VALUES (TO_TIMESTAMP('08.04.2025 18:18:00', 'DD.MM.YYYY HH24:MI:SS'), 4, 1, 18);
 
 
 --3. Trigger => ak zamestnanec prida do tabulky uses ingredienciu sputi sa procedura update_ingredient amount
-savepoint trigger3;
 CREATE OR REPLACE TRIGGER trigger_update_after_insertion_uses
 AFTER INSERT ON uses
 FOR EACH ROW
@@ -848,9 +847,9 @@ SELECT * FROM TABLE (DBMS_XPLAN.DISPLAY);
 
 -- There can be another index for optimalization => Menu_item
 
------------------------------------ Authorization and MATERIALIZED VIEW -----------------------------------
+-- authorization
 
-//GRANT ALL ON ingredient TO XKUBOVV00;
+//GRANT ALL ON igredient TO XKUBOVV00;
 
 BEGIN
     FOR i IN (SELECT table_name FROM user_tables) LOOP
