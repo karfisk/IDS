@@ -848,9 +848,9 @@ SELECT * FROM TABLE (DBMS_XPLAN.DISPLAY);
 
 -- There can be another index for optimalization => Menu_item
 
--- authorization
+----------------------------------- Authorization and MATERIALIZED VIEW -----------------------------------
 
-//GRANT ALL ON igredient TO XKUBOVV00;
+//GRANT ALL ON ingredient TO XKUBOVV00;
 
 BEGIN
     FOR i IN (SELECT table_name FROM user_tables) LOOP
@@ -859,6 +859,19 @@ BEGIN
 END;
 /
 
+-- Shows employees and how many orders they made
+CREATE MATERIALIZED VIEW XKUBOVV00.alergens_in_menu_items
+BUILD IMMEDIATE
+REFRESH COMPLETE ON DEMAND
+AS
+SELECT u.user_id, u.user_name, COUNT(*) as num_of_orders
+FROM rest_user u
+LEFT JOIN makes m ON u.user_id = m.user_id
+LEFT JOIN rest_order ord ON m.order_id = ord.order_id
+WHERE u.user_position = 'Employee'
+GROUP BY u.user_id, u.user_name
+HAVING COUNT(ord.order_id) > 0
+ORDER BY num_of_orders;
 
 -------------------------------------- SELECT using WITH and CASE ------------------------------------
 
