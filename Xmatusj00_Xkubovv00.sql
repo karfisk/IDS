@@ -261,9 +261,52 @@ INSERT INTO rest_order (order_time)
 VALUES (TO_TIMESTAMP('08.02.2025 17:27:08', 'DD.MM.YYYY HH24:MI:SS'));
 
 
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('01.04.2025 12:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('02.04.2025 13:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('03.04.2025 14:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('04.04.2025 15:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('05.04.2025 16:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('06.04.2025 17:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('07.04.2025 18:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('08.04.2025 19:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('09.04.2025 20:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('10.04.2025 21:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('11.04.2025 22:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('12.04.2025 23:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('13.04.2025 11:00:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('14.04.2025 10:30:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('15.04.2025 13:15:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('16.04.2025 16:45:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('17.04.2025 14:20:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('18.04.2025 12:50:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('19.04.2025 15:10:00', 'DD.MM.YYYY HH24:MI:SS'));
+INSERT INTO rest_order (order_time) 
+VALUES (TO_TIMESTAMP('20.04.2025 13:40:00', 'DD.MM.YYYY HH24:MI:SS'));
+
+
+
 -- Menu_item
 INSERT INTO menu_item (menu_item_name, menu_item_price)
-VALUES ('Cerveza Cristal', 500);
+VALUES ('Cerveza Cristal', 665);
 INSERT INTO menu_item (menu_item_name, menu_item_price)
 VALUES ('Svieckova', 150);
 INSERT INTO menu_item (menu_item_name, menu_item_price)
@@ -278,6 +321,49 @@ INSERT INTO menu_item (menu_item_name, menu_item_price)
 VALUES ('Chilly Wine', 60);
 INSERT INTO menu_item (menu_item_name, menu_item_price)
 VALUES ('Angels Coffee', 45);
+
+
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Naboo Noodles', 110);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Wookiee Wrap', 135);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Bantha Burger', 155);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Hoth Soup', 90);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Alderaan Salad', 120);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Ewok Eggs', 80);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Jawa Juice', 45);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Gungan Gumbo', 130);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Tatooine Tacos', 140);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Yoda Yogurt', 60);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Chewbacca Chili', 145);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Coruscant Curry', 115);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Endor Eclair', 70);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Bespin Bagel', 85);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Dagobah Dumplings', 95);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Sith Sandwich', 100);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Droid Donut', 55);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Clone Cake', 125);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Rebel Ribs', 165);
+INSERT INTO menu_item (menu_item_name, menu_item_price) 
+VALUES ('Starfighter Stew', 150);
+
 
 -- Ingredient
 INSERT INTO ingredient (ingredient_exper_date, ingredient_amount, ingredient_unit, ingredient_name) 
@@ -383,6 +469,23 @@ VALUES (1, NULL, 2, 8);
 INSERT INTO is_a_part_of (quantity, order_note, menu_item_id, order_id)
 VALUES (1, NULL, 8, 8);
 
+
+BEGIN
+  FOR i IN 1..2000 LOOP
+    INSERT INTO is_a_part_of (quantity, order_note, menu_item_id, order_id)
+    VALUES (
+      TRUNC(DBMS_RANDOM.VALUE(1, 5)),
+      'Auto-gen note ' || i,
+      MOD(i, (SELECT MAX(menu_item_id) FROM menu_item)) + 1,  
+      MOD(i, (SELECT MAX(order_id) FROM rest_order)) + 1
+    );
+  END LOOP;
+  COMMIT;
+END;
+/
+
+
+
 -- Menu_item consists of ingredients
 INSERT INTO consists_of (menu_item_id, ingredient_id)
 VALUES (1, 1);
@@ -461,7 +564,7 @@ SELECT * FROM CONTAINS;
 
 -- Which ingriedients are used in menu item 'Ration Pack'?
 -- (IN predicate with a subquery)
-/*SELECT ingredient_name
+SELECT ingredient_name
 FROM ingredient 
 WHERE ingredient_id IN 
     (SELECT ingredient_id FROM consists_of
@@ -520,7 +623,7 @@ SELECT mi.menu_item_id, mi.menu_item_name, SUM(iap.quantity) AS total_quantity_o
 FROM is_a_part_of iap
 JOIN menu_item mi ON iap.menu_item_id = mi.menu_item_id
 GROUP BY mi.menu_item_id, mi.menu_item_name
-ORDER BY total_quantity_ordered DESC;*/
+ORDER BY total_quantity_ordered DESC;
 
 
 
@@ -529,7 +632,6 @@ ORDER BY total_quantity_ordered DESC;*/
 ----------------------------------------------- Triggers ------------------------------------------------------
 
 --1. Trigger => reservation control (Only one reservation for saloon or table can be made on specific time)
-savepoint trigger1;
 CREATE OR REPLACE TRIGGER check_for_conflict_in_reservation_table
 BEFORE INSERT ON table_reservation
 FOR EACH ROW
@@ -566,7 +668,6 @@ BEGIN
 END;
 /
 
-savepoint trigger1_test;
 -- Test for 1. Trigger(table)
 
 -- this one will be inserted
@@ -587,12 +688,8 @@ VALUES ('Welcome party', TO_TIMESTAMP('12.06.2025 19:00:00', 'DD.MM.YYYY HH24:MI
 INSERT INTO saloon_reservation (event_name, event_time, event_note, reservation_id, saloon_id)
 VALUES ('Welcome party', TO_TIMESTAMP('12.06.2025 19:00:00', 'DD.MM.YYYY HH24:MI:SS'), NULL, 3, 1);
 
-rollback to trigger1_test;  -- reverse changes made by testing
-rollback to trigger1;       -- reverse trigger 'check_for_conflict_in_reservation_table' creation
-
 
 --2. Trigger => check for experation date (user can't use ingredient that exceeded expiration date)
-savepoint trigger2;
 CREATE OR REPLACE TRIGGER check_for_expiration_date
 BEFORE INSERT ON uses
 FOR EACH ROW
@@ -610,7 +707,6 @@ BEGIN
 END;
 /
 
-savepoint trigger2_test;
 -- Test for 2. Trigger 
 
 -- Created new ingredients 'spoiled milk'
@@ -620,9 +716,6 @@ VALUES (TO_DATE('1.1.2003', 'DD.MM.YYYY'), 666, 'l', 'spoiled milk');
 -- inserting it into 'uses' table
 INSERT INTO uses (use_time, ingredient_amount, user_id, ingredient_id)
 VALUES (TO_TIMESTAMP('08.04.2025 18:18:00', 'DD.MM.YYYY HH24:MI:SS'), 4, 1, 18);
-
-rollback to trigger2_test;  -- reverse changes made by testing
-rollback to trigger2;       -- reverse trigger 'check_for_expiration_date' creation
 
 
 --3. Trigger => ak zamestnanec prida do tabulky uses ingredienciu sputi sa procedura update_ingredient amount
@@ -636,7 +729,6 @@ BEGIN
 END;
 /
 
-savepoint trigger3_test;
 -- Test for 3.Trigger and 2.Procedure
 -- There are 20 'Coffee beans' at the beginning, then an emplyee takes 4
 -- and this changes the amount in table 'Ingredient'
@@ -650,12 +742,9 @@ VALUES (TO_TIMESTAMP('08.04.2025 18:18:00', 'DD.MM.YYYY HH24:MI:SS'), 4, 1, 17);
 SELECT * FROM INGREDIENT
 WHERE ingredient_name = 'Coffee beans';
 
---------- NOT WORKINGGGGGGGGGGGGGGGG - DOENST DO AN ERROR ----------------------------------------
+-- employee wants to take amount that is not possible
 INSERT INTO uses (use_time, ingredient_amount, user_id, ingredient_id)
 VALUES (TO_TIMESTAMP('08.04.2025 18:20:00', 'DD.MM.YYYY HH24:MI:SS'), 21, 1, 17);
-
-rollback to triggers3_test;     -- reverse changes made by testing
-rollback to trigger3;           -- reverse trigger 'trigger_update_after_insertion_uses' creation
 
 ----------------------------------------------- Procedures ---------------------------------------------------
 
@@ -725,38 +814,35 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN 
     DBMS_OUTPUT.PUT_LINE('Update unsuccessful.');
+    RAISE;
 
 END;
 /
 
 ------------------------------------- Optimalization with index -----------------------------------------------
 
--- As an example, we used a SELECT from the last part of our project 
+-- As an example, we used a SELECT => Find order with menu item that costs more then 500kc 
+
 EXPLAIN PLAN FOR
-SELECT ro.order_id, SUM(iap.quantity * m.menu_item_price) as final_sum 
+SELECT ro.order_id, m.menu_item_price
 FROM rest_order ro
-LEFT JOIN is_a_part_of iap ON ro.order_id = iap.order_id
-LEFT JOIN menu_item m ON iap.menu_item_id = m.menu_item_id
-GROUP BY ro.order_id
-HAVING SUM(iap.quantity * m.menu_item_price) > 200;
---ORDER BY ro.order_id;
+JOIN is_a_part_of iap ON ro.order_id = iap.order_id
+JOIN menu_item m ON iap.menu_item_id = m.menu_item_id
+WHERE m.menu_item_price >500;
 
 SELECT * FROM TABLE (DBMS_XPLAN.DISPLAY);
 
-CREATE INDEX index_is_part_of_order ON is_a_part_of(order_id);
+CREATE INDEX index_menu_item ON menu_item(menu_item_price);
 
 DELETE FROM PLAN_TABLE;
 COMMIT;
 
--- Used hint to forced optimization 
 EXPLAIN PLAN FOR
-SELECT /*+ INDEX(iap index_is_part_of_order) */ ro.order_id, SUM(iap.quantity * m.menu_item_price) as final_sum 
+SELECT ro.order_id, m.menu_item_price
 FROM rest_order ro
-LEFT JOIN is_a_part_of iap ON ro.order_id = iap.order_id
-LEFT JOIN menu_item m ON iap.menu_item_id = m.menu_item_id
-GROUP BY ro.order_id
-HAVING SUM(iap.quantity * m.menu_item_price) > 200;
---ORDER BY ro.order_id;
+JOIN is_a_part_of iap ON ro.order_id = iap.order_id
+JOIN menu_item m ON iap.menu_item_id = m.menu_item_id
+WHERE m.menu_item_price >500;
 
 SELECT * FROM TABLE (DBMS_XPLAN.DISPLAY);
 
