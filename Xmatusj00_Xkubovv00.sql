@@ -248,7 +248,7 @@ VALUES (TO_TIMESTAMP('08.04.2025 18:15:00', 'DD.MM.YYYY HH24:MI:SS'));
 INSERT INTO rest_order (order_time)
 VALUES (TO_TIMESTAMP('08.04.2025 18:16:00', 'DD.MM.YYYY HH24:MI:SS'));
 INSERT INTO rest_order (order_time)
-VALUES (TO_TIMESTAMP('26.03.2025 13:46:25', 'DD.MM.YYYY HH24:MI:SS'));
+VALUES (TO_TIMESTAMP('26.03.2024 13:46:25', 'DD.MM.YYYY HH24:MI:SS'));
 INSERT INTO rest_order (order_time)
 VALUES (TO_TIMESTAMP('13.04.2025 20:50:25', 'DD.MM.YYYY HH24:MI:SS'));
 INSERT INTO rest_order (order_time)
@@ -524,11 +524,12 @@ ORDER BY total_quantity_ordered DESC;*/
 
 
 
-------------------------------------------- Advance Quaries ---------------------------------------------------
+------------------------------------------- Advanced Quaries ---------------------------------------------------
 
 ----------------------------------------------- Triggers ------------------------------------------------------
 
 --1. Trigger => reservation control (Only one reservation for saloon or table can be made on specific time)
+savepoint trigger1;
 CREATE OR REPLACE TRIGGER check_for_conflict_in_reservation_table
 BEFORE INSERT ON table_reservation
 FOR EACH ROW
@@ -565,13 +566,14 @@ BEGIN
 END;
 /
 
+savepoint trigger1_test;
 -- Test for 1. Trigger(table)
 
 -- this one will be inserted
 INSERT INTO table_reservation (event_time, reservation_id, table_id)
 VALUES (TO_TIMESTAMP('12.06.2025 19:00:00', 'DD.MM.YYYY HH24:MI:SS'), 1, 1);
 
--- this one not(same table id and time)
+-- this one not (same table id and time)
 INSERT INTO table_reservation (event_time, reservation_id, table_id)
 VALUES (TO_TIMESTAMP('12.06.2025 19:00:00', 'DD.MM.YYYY HH24:MI:SS'), 2, 1);
 
@@ -585,9 +587,12 @@ VALUES ('Welcome party', TO_TIMESTAMP('12.06.2025 19:00:00', 'DD.MM.YYYY HH24:MI
 INSERT INTO saloon_reservation (event_name, event_time, event_note, reservation_id, saloon_id)
 VALUES ('Welcome party', TO_TIMESTAMP('12.06.2025 19:00:00', 'DD.MM.YYYY HH24:MI:SS'), NULL, 3, 1);
 
+rollback to trigger1_test;  -- reverse changes made by testing
+rollback to trigger1;       -- reverse trigger 'check_for_conflict_in_reservation_table' creation
 
 
---2. Trigger => check for experation date (user can`t use ingredient that exceeded expiration date)
+--2. Trigger => check for experation date (user can't use ingredient that exceeded expiration date)
+savepoint trigger2;
 CREATE OR REPLACE TRIGGER check_for_expiration_date
 BEFORE INSERT ON uses
 FOR EACH ROW
@@ -600,24 +605,28 @@ BEGIN
     WHERE ingredient_id = :NEW.ingredient_id;
 
     IF expr_date < :NEW.use_time THEN 
-        RAISE_APPLICATION_ERROR(-20002, 'Exipiration date of ingredient is exceeded');
+        RAISE_APPLICATION_ERROR(-20002, 'This Ingredient is past its expiration date.');
     END IF;
 END;
 /
 
+savepoint trigger2_test;
 -- Test for 2. Trigger 
 
 -- Created new ingredients 'spoiled milk'
 INSERT INTO ingredient (ingredient_exper_date, ingredient_amount, ingredient_unit, ingredient_name)
 VALUES (TO_DATE('1.1.2003', 'DD.MM.YYYY'), 666, 'l', 'spoiled milk');
 
--- inserting it into table uses
+-- inserting it into 'uses' table
 INSERT INTO uses (use_time, ingredient_amount, user_id, ingredient_id)
 VALUES (TO_TIMESTAMP('08.04.2025 18:18:00', 'DD.MM.YYYY HH24:MI:SS'), 4, 1, 18);
 
+rollback to trigger2_test;  -- reverse changes made by testing
+rollback to trigger2;       -- reverse trigger 'check_for_expiration_date' creation
 
 
 --3. Trigger => ak zamestnanec prida do tabulky uses ingredienciu sputi sa procedura update_ingredient amount
+savepoint trigger3;
 CREATE OR REPLACE TRIGGER trigger_update_after_insertion_uses
 AFTER INSERT ON uses
 FOR EACH ROW
@@ -627,23 +636,31 @@ BEGIN
 END;
 /
 
+savepoint trigger3_test;
 -- Test for 3.Trigger and 2.Procedure
+-- There are 20 'Coffee beans' at the beginning, then an emplyee takes 4
+-- and this changes the amount in table 'Ingredient'
 SELECT * FROM INGREDIENT
 WHERE ingredient_name = 'Coffee beans';
 
+-- employee takes 4
 INSERT INTO uses (use_time, ingredient_amount, user_id, ingredient_id)
 VALUES (TO_TIMESTAMP('08.04.2025 18:18:00', 'DD.MM.YYYY HH24:MI:SS'), 4, 1, 17);
 
 SELECT * FROM INGREDIENT
 WHERE ingredient_name = 'Coffee beans';
 
+--------- NOT WORKINGGGGGGGGGGGGGGGG - DOENST DO AN ERROR ----------------------------------------
 INSERT INTO uses (use_time, ingredient_amount, user_id, ingredient_id)
 VALUES (TO_TIMESTAMP('08.04.2025 18:20:00', 'DD.MM.YYYY HH24:MI:SS'), 21, 1, 17);
 
------------------------------------------------ Procedure ---------------------------------------------------
+rollback to triggers3_test;     -- reverse changes made by testing
+rollback to trigger3;           -- reverse trigger 'trigger_update_after_insertion_uses' creation
 
---1. Procedure => deletetation of expired ingredients 
-CREATE OR REPLACE PROCEDURE delete_expired_ingriedients IS
+----------------------------------------------- Procedures ---------------------------------------------------
+
+--1. Procedure => deletion of expired ingredients
+CREATE OR REPLACE PROCEDURE delete_expired_ingredients IS
 
     CURSOR expr_ing IS
         SELECT * FROM ingredient 
@@ -661,16 +678,16 @@ BEGIN
             WHERE ingredient_id = curr_ingredient.ingredient_id;
         EXCEPTION
             WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('deletetation of ingredient with ID: ' || curr_ingredient.ingredient_id || ' unsuccesful'); 
+            DBMS_OUTPUT.PUT_LINE('Deletion of ingredient with ID: ' || curr_ingredient.ingredient_id || ' was unsuccessful.'); 
         END;
     END LOOP;
     CLOSE expr_ing;
 
-DBMS_OUTPUT.PUT_LINE('Ingredients deleted succesfuly');  
+DBMS_OUTPUT.PUT_LINE('Ingredients deleted successfully.');  
 
 EXCEPTION
     WHEN OTHERS THEN
-    DBMS_OUTPUT.PUT_LINE('Error during execution of delete_expired_ingredietns');
+    DBMS_OUTPUT.PUT_LINE('An error occurred during the execution of delete_expired_ingredients procedure.');
 END;
 /
 
@@ -678,13 +695,14 @@ END;
 SELECT * FROM INGREDIENT;
 
 BEGIN 
-    delete_expired_ingriedients;
+    delete_expired_ingredients;
 END;
 /
 
 SELECT * FROM INGREDIENT;
 
---2. Procedure => if ingredient is used update new current amount of that ingredient  
+--2. Procedure => if an ingredient is used, update current amount of that ingredient
+--             => atempting to use a bigger amount than is available causes an error
 CREATE OR REPLACE PROCEDURE update_ingredient_amount(
     ing_id IN ingredient.ingredient_id%TYPE,
     ing_used_amount IN ingredient.ingredient_amount%TYPE
@@ -695,25 +713,25 @@ BEGIN
     WHERE ingredient_id = ing_id;
 
     IF ing_used_amount > current_amount THEN
-        RAISE_APPLICATION_ERROR(-20003, 'The requested amount of the ingredient is not available');
+        RAISE_APPLICATION_ERROR(-20003, 'The requested amount of the ingredient is not available.');
     END IF;
     
     UPDATE ingredient
     SET ingredient_amount = current_amount - ing_used_amount
     WHERE ingredient_id = ing_id;
 
-    DBMS_OUTPUT.PUT_LINE('update succesful');
+    DBMS_OUTPUT.PUT_LINE('Update successful.');
 
 EXCEPTION
     WHEN OTHERS THEN 
-    DBMS_OUTPUT.PUT_LINE('update unsuccesful');
+    DBMS_OUTPUT.PUT_LINE('Update unsuccessful.');
 
 END;
 /
 
 ------------------------------------- Optimalization with index -----------------------------------------------
 
--- As example we used SELECT from last part of project 
+-- As an example, we used a SELECT from the last part of our project 
 EXPLAIN PLAN FOR
 SELECT ro.order_id, SUM(iap.quantity * m.menu_item_price) as final_sum 
 FROM rest_order ro
@@ -746,11 +764,30 @@ SELECT * FROM TABLE (DBMS_XPLAN.DISPLAY);
 
 -- authorization
 
-//GRANT ALL ON igredient TO Xkubovv00;
+//GRANT ALL ON igredient TO XKUBOVV00;
 
 BEGIN
     FOR i IN (SELECT table_name FROM user_tables) LOOP
-        EXECUTE IMMEDIATE 'GRANT SELECT ON ' || i.table_name || ' TO Xkubovv00';
+        EXECUTE IMMEDIATE 'GRANT SELECT ON ' || i.table_name || ' TO XKUBOVV00';
     END LOOP;
 END;
 /
+
+
+-------------------------------------- SELECT using WITH and CASE ------------------------------------
+
+-- How many orders has each user created and who was active (made orders) this year?
+WITH num_of_orders AS (
+    SELECT u.user_id, COUNT(*) AS quantity, MAX(ro.order_time) AS last_order
+    FROM rest_order ro
+    LEFT JOIN makes m ON ro.order_id = m.order_id
+    LEFT JOIN rest_user u ON m.user_id = u.user_id
+    GROUP BY u.user_id
+)
+SELECT u.user_name, noo.quantity,
+    CASE
+        WHEN noo.quantity IS NULL OR noo.last_order < TO_DATE('01.01.2025', 'DD.MM.YYYY') THEN 'Not active'
+        ELSE 'Active'
+    END AS status
+FROM rest_user u
+LEFT JOIN num_of_orders noo ON noo.user_id = u.user_id;
