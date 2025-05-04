@@ -528,7 +528,7 @@ ORDER BY total_quantity_ordered DESC;*/
 
 ----------------------------------------------- Triggers ------------------------------------------------------
 
---1. Trigger => kontrola rezervacie (nesmie vzniknit na jeden cas viac ako jedna rezervacia na miesto alebo salonik)
+--1. Trigger => reservation control (Only one reservation for saloon or table can be made on specific time)
 CREATE OR REPLACE TRIGGER check_for_conflict_in_reservation_table
 BEFORE INSERT ON table_reservation
 FOR EACH ROW
@@ -565,7 +565,29 @@ BEGIN
 END;
 /
 
---2. Trigger => kontrola casu spotreby (nemies pouzit polozky ktore su po case spotreby)
+-- Test for 1. Trigger(table)
+
+-- this one will be inserted
+INSERT INTO table_reservation (event_time, reservation_id, table_id)
+VALUES (TO_TIMESTAMP('12.06.2025 19:00:00', 'DD.MM.YYYY HH24:MI:SS'), 1, 1);
+
+-- this one not(same table id and time)
+INSERT INTO table_reservation (event_time, reservation_id, table_id)
+VALUES (TO_TIMESTAMP('12.06.2025 19:00:00', 'DD.MM.YYYY HH24:MI:SS'), 2, 1);
+
+-- Test for 1. Trigger(saloon)
+
+-- this one will be inserted
+INSERT INTO saloon_reservation (event_name, event_time, event_note, reservation_id, saloon_id)
+VALUES ('Welcome party', TO_TIMESTAMP('12.06.2025 19:00:00', 'DD.MM.YYYY HH24:MI:SS'), NULL, 2, 1);
+
+-- this one not(same saloon id and time)
+INSERT INTO saloon_reservation (event_name, event_time, event_note, reservation_id, saloon_id)
+VALUES ('Welcome party', TO_TIMESTAMP('12.06.2025 19:00:00', 'DD.MM.YYYY HH24:MI:SS'), NULL, 3, 1);
+
+
+
+--2. Trigger => check for experation date (user can`t use ingredient that exceeded expiration date)
 CREATE OR REPLACE TRIGGER check_for_expiration_date
 BEFORE INSERT ON uses
 FOR EACH ROW
@@ -583,6 +605,18 @@ BEGIN
 END;
 /
 
+-- Test for 2. Trigger 
+
+-- Created new ingredients 'spoiled milk'
+INSERT INTO ingredient (ingredient_exper_date, ingredient_amount, ingredient_unit, ingredient_name)
+VALUES (TO_DATE('1.1.2003', 'DD.MM.YYYY'), 666, 'l', 'spoiled milk');
+
+-- inserting it into table uses
+INSERT INTO uses (use_time, ingredient_amount, user_id, ingredient_id)
+VALUES (TO_TIMESTAMP('08.04.2025 18:18:00', 'DD.MM.YYYY HH24:MI:SS'), 4, 1, 18);
+
+
+
 --3. Trigger => ak zamestnanec prida do tabulky uses ingredienciu sputi sa procedura update_ingredient amount
 CREATE OR REPLACE TRIGGER trigger_update_after_insertion_uses
 AFTER INSERT ON uses
@@ -593,9 +627,22 @@ BEGIN
 END;
 /
 
------------------------------- PROCEDURY -------------------------------------------------------------------------------------------
+-- Test for 3.Trigger and 2.Procedure
+SELECT * FROM INGREDIENT
+WHERE ingredient_name = 'Coffee beans';
 
---1. Procedura => odstranenie ingrediencii po zaruke
+INSERT INTO uses (use_time, ingredient_amount, user_id, ingredient_id)
+VALUES (TO_TIMESTAMP('08.04.2025 18:18:00', 'DD.MM.YYYY HH24:MI:SS'), 4, 1, 17);
+
+SELECT * FROM INGREDIENT
+WHERE ingredient_name = 'Coffee beans';
+
+INSERT INTO uses (use_time, ingredient_amount, user_id, ingredient_id)
+VALUES (TO_TIMESTAMP('08.04.2025 18:20:00', 'DD.MM.YYYY HH24:MI:SS'), 21, 1, 17);
+
+----------------------------------------------- Procedure ---------------------------------------------------
+
+--1. Procedure => deletetation of expired ingredients 
 CREATE OR REPLACE PROCEDURE delete_expired_ingriedients IS
 
     CURSOR expr_ing IS
@@ -614,20 +661,30 @@ BEGIN
             WHERE ingredient_id = curr_ingredient.ingredient_id;
         EXCEPTION
             WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('nepodarilo sa mi zmazat ingredienciu s ID: ' || curr_ingredient.ingredient_id); -- zmenit hlasenu chybu
+            DBMS_OUTPUT.PUT_LINE('deletetation of ingredient with ID: ' || curr_ingredient.ingredient_id || ' unsuccesful'); 
         END;
     END LOOP;
     CLOSE expr_ing;
 
-DBMS_OUTPUT.PUT_LINE('Podarilo sa vymazat ingredienciu'); -- aj tu 
+DBMS_OUTPUT.PUT_LINE('Ingredients deleted succesfuly');  
 
 EXCEPTION
     WHEN OTHERS THEN
-    DBMS_OUTPUT.PUT_LINE('Chyba pri executovani proceduri delete_expired_ingridients');
+    DBMS_OUTPUT.PUT_LINE('Error during execution of delete_expired_ingredietns');
 END;
 /
 
---2. procedura => ak sa pouzije nejaka ingrediencia uloz nove aktualne mnozstvo 
+-- Test for 1.Procedure 
+SELECT * FROM INGREDIENT;
+
+BEGIN 
+    delete_expired_ingriedients;
+END;
+/
+
+SELECT * FROM INGREDIENT;
+
+--2. Procedure => if ingredient is used update new current amount of that ingredient  
 CREATE OR REPLACE PROCEDURE update_ingredient_amount(
     ing_id IN ingredient.ingredient_id%TYPE,
     ing_used_amount IN ingredient.ingredient_amount%TYPE
@@ -638,25 +695,25 @@ BEGIN
     WHERE ingredient_id = ing_id;
 
     IF ing_used_amount > current_amount THEN
-        RAISE_APPLICATION_ERROR(-20003, 'na sklade nie je taketo mnozstvo suroviny');
+        RAISE_APPLICATION_ERROR(-20003, 'The requested amount of the ingredient is not available');
     END IF;
     
     UPDATE ingredient
     SET ingredient_amount = current_amount - ing_used_amount
     WHERE ingredient_id = ing_id;
 
-    DBMS_OUTPUT.PUT_LINE('update bol uspesny');
+    DBMS_OUTPUT.PUT_LINE('update succesful');
 
 EXCEPTION
     WHEN OTHERS THEN 
-    DBMS_OUTPUT.PUT_LINE('update bol neuspesny');
+    DBMS_OUTPUT.PUT_LINE('update unsuccesful');
 
 END;
 /
 
-------------------------------------- Optimalizacia cez index ---------------------------------------------
+------------------------------------- Optimalization with index -----------------------------------------------
 
--- Ako priklad vyuzijeme select z minulej casti projektu
+-- As example we used SELECT from last part of project 
 EXPLAIN PLAN FOR
 SELECT ro.order_id, SUM(iap.quantity * m.menu_item_price) as final_sum 
 FROM rest_order ro
@@ -673,6 +730,7 @@ CREATE INDEX index_is_part_of_order ON is_a_part_of(order_id);
 DELETE FROM PLAN_TABLE;
 COMMIT;
 
+-- Used hint to forced optimization 
 EXPLAIN PLAN FOR
 SELECT /*+ INDEX(iap index_is_part_of_order) */ ro.order_id, SUM(iap.quantity * m.menu_item_price) as final_sum 
 FROM rest_order ro
@@ -684,8 +742,9 @@ HAVING SUM(iap.quantity * m.menu_item_price) > 200;
 
 SELECT * FROM TABLE (DBMS_XPLAN.DISPLAY);
 
+-- There can be another index for optimalization => Menu_item
 
--- udelenie prav 
+-- authorization
 
 //GRANT ALL ON igredient TO Xkubovv00;
 
