@@ -1,4 +1,5 @@
 Authors: Josef Matus, Veronika Kubová
+
 Creation date: 1.4. 2025
 
 This Project for IDS was devided into 4 parts, each focusing on a certain part of creating a database system.
